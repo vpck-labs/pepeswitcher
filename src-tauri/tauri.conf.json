@@ -1,6 +1,6 @@
 {
   "$schema": "https://schema.tauri.app/config/2",
-  "productName": "PepeTools",
+  "productName": "PepeSwitcher",
   "version": "0.1.0",
   "identifier": "com.wintools.app",
   "build": {
@@ -13,9 +13,9 @@
     "windows": [
       {
         "label": "main",
-        "title": "PepeTools",
+        "title": "PepeSwitcher",
         "width": 360,
-        "height": 620,
+        "height": 720,
         "resizable": false,
         "decorations": false,
         "skipTaskbar": true,
@@ -34,6 +34,10 @@
       "binaries/multimonitortool",
       "binaries/soundvolumeview"
     ],
+    "resources": {
+      "resources/nirsoft/multimonitortool/*": "resources/nirsoft/multimonitortool/",
+      "resources/nirsoft/soundvolumeview/*": "resources/nirsoft/soundvolumeview/"
+    },
     "icon": [
       "icons/32x32.png",
       "icons/128x128.png",

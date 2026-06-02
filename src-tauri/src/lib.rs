@@ -1,4 +1,5 @@
 mod audio;
+mod master;
 mod monitors;
 mod sidecar;
 mod store;
@@ -42,6 +43,7 @@ pub fn run() {
         ))
         .setup(|app| {
             tray::setup_tray(app.handle())?;
+            master::register_all_hotkeys(app.handle());
             Ok(())
         })
         .on_window_event(|window, event| {
@@ -64,6 +66,10 @@ pub fn run() {
             audio::save_audio_preset,
             audio::apply_audio_preset,
             audio::delete_audio_preset,
+            master::save_master_preset,
+            master::apply_master_preset,
+            master::reorder_master_presets,
+            master::delete_master_preset,
             set_autostart,
             get_autostart,
             hide_window,

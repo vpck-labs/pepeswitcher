@@ -32,6 +32,23 @@ pub struct AudioPreset {
     pub hotkey: Option<String>,
 }
 
+/// A named combination of a monitor preset and an audio preset, optionally
+/// bound to a global hotkey. Applying it applies both referenced presets.
+#[derive(Serialize, Deserialize, Clone, Debug)]
+#[serde(rename_all = "camelCase")]
+pub struct MasterPreset {
+    pub id: String,
+    pub name: String,
+    #[serde(default)]
+    pub monitor_preset_id: Option<String>,
+    #[serde(default)]
+    pub audio_preset_id: Option<String>,
+    /// Accelerator string (e.g. "Control+Alt+Digit1") parsed by the
+    /// global-shortcut plugin; None means no hotkey.
+    #[serde(default)]
+    pub hotkey: Option<String>,
+}
+
 #[derive(Serialize, Deserialize, Clone, Debug, Default)]
 #[serde(rename_all = "camelCase")]
 pub struct AppConfig {
@@ -39,6 +56,8 @@ pub struct AppConfig {
     pub monitor_presets: Vec<MonitorPreset>,
     #[serde(default)]
     pub audio_presets: Vec<AudioPreset>,
+    #[serde(default)]
+    pub master_presets: Vec<MasterPreset>,
 }
 
 /// Time-based unique id; nanosecond resolution is plenty for hand-created presets.

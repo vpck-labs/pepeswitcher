@@ -13,9 +13,18 @@ export interface AudioPreset {
   hotkey?: string | null;
 }
 
+export interface MasterPreset {
+  id: string;
+  name: string;
+  monitorPresetId?: string | null;
+  audioPresetId?: string | null;
+  hotkey?: string | null;
+}
+
 export interface AppConfig {
   monitorPresets: MonitorPreset[];
   audioPresets: AudioPreset[];
+  masterPresets: MasterPreset[];
 }
 
 export interface AudioDevice {
