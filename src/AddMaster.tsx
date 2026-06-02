@@ -9,20 +9,23 @@ export interface CurrentSelection {
   audioName: string | null;
 }
 
-/** Form body for snapshotting the current selection into a master preset. */
+/** Form body for creating or editing a master preset, shown inside the modal. */
 export default function AddMaster(props: {
   current: CurrentSelection;
+  initial?: { id: string; name: string; hotkey: string | null };
   onDone: () => void;
   onCancel: () => void;
 }) {
   const { current } = props;
-  const [name, setName] = useState("");
-  const [hotkey, setHotkey] = useState<string | null>(null);
+  const isEdit = !!props.initial;
+  const [name, setName] = useState(props.initial?.name ?? "");
+  const [hotkey, setHotkey] = useState<string | null>(props.initial?.hotkey ?? null);
   const [capturing, setCapturing] = useState(false);
   const [busy, setBusy] = useState(false);
   const [error, setError] = useState<string | null>(null);
 
-  const nothingSelected = !current.monitorId && !current.audioId;
+  // Only relevant when creating: there must be an active selection to snapshot.
+  const nothingSelected = !isEdit && !current.monitorId && !current.audioId;
 
   const save = async () => {
     const trimmed = name.trim();
@@ -30,7 +33,11 @@ export default function AddMaster(props: {
     setBusy(true);
     setError(null);
     try {
-      await api.saveMasterPreset(trimmed, current.monitorId, current.audioId, hotkey);
+      if (isEdit) {
+        await api.updateMasterPreset(props.initial!.id, trimmed, hotkey);
+      } else {
+        await api.saveMasterPreset(trimmed, current.monitorId, current.audioId, hotkey);
+      }
       props.onDone();
     } catch (e) {
       setError(String(e));
@@ -53,20 +60,22 @@ export default function AddMaster(props: {
 
   return (
     <div className="dialog">
-      <h2>New master preset</h2>
-      <p className="hint">Snapshots your current selection so one click (or a hotkey) restores both.</p>
+      <h2>{isEdit ? "Edit master preset" : "New master preset"}</h2>
+      {!isEdit && (
+        <p className="hint">Snapshots your current selection so one click (or a hotkey) restores both.</p>
+      )}
 
       <div className="snapshot">
         <div>
           <span className="snapshot-label">Monitor</span>
           <span className={current.monitorName ? "" : "muted"}>
-            {current.monitorName ?? "none active"}
+            {current.monitorName ?? "none"}
           </span>
         </div>
         <div>
           <span className="snapshot-label">Audio</span>
           <span className={current.audioName ? "" : "muted"}>
-            {current.audioName ?? "none active"}
+            {current.audioName ?? "none"}
           </span>
         </div>
       </div>
@@ -123,7 +132,7 @@ export default function AddMaster(props: {
           Cancel
         </button>
         <button disabled={busy || !name.trim() || nothingSelected} onClick={save}>
-          Create
+          {isEdit ? "Save" : "Create"}
         </button>
       </div>
     </div>

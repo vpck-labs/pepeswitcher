@@ -88,6 +88,41 @@ pub async fn apply_master_preset(app: AppHandle, id: String) -> Result<(), Strin
     apply_master(&app, &id).await
 }
 
+/// Update a master preset's name and/or hotkey (re-registering the global
+/// shortcut as needed). The referenced monitor/audio presets are unchanged.
+#[tauri::command]
+pub async fn update_master_preset(
+    app: AppHandle,
+    id: String,
+    name: String,
+    hotkey: Option<String>,
+) -> Result<(), String> {
+    let mut config = load_config(&app).map_err(|e| e.to_string())?;
+    let idx = config
+        .master_presets
+        .iter()
+        .position(|m| m.id == id)
+        .ok_or_else(|| format!("master preset '{id}' not found"))?;
+
+    let old_hotkey = config.master_presets[idx].hotkey.clone();
+    if old_hotkey != hotkey {
+        // Register the new one first so a bad/duplicate accelerator fails
+        // before we drop the old binding.
+        if let Some(new) = hotkey.as_deref() {
+            register_hotkey(&app, &id, new)?;
+        }
+        if let Some(old) = old_hotkey.as_deref() {
+            unregister_hotkey(&app, old);
+        }
+    }
+
+    let preset = &mut config.master_presets[idx];
+    preset.name = name;
+    preset.hotkey = hotkey;
+    save_config(&app, &config).map_err(|e| e.to_string())?;
+    Ok(())
+}
+
 /// Reorder master presets to match the given id order (ids not present are
 /// pushed to the end).
 #[tauri::command]

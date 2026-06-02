@@ -1,9 +1,14 @@
 import { useState } from "react";
 import * as api from "./api";
 
-/** Form body for adding a monitor preset, shown inside the modal. */
-export default function AddMonitor(props: { onDone: () => void; onCancel: () => void }) {
-  const [name, setName] = useState("");
+/** Form body for adding or renaming a monitor preset, shown inside the modal. */
+export default function AddMonitor(props: {
+  initial?: { id: string; name: string };
+  onDone: () => void;
+  onCancel: () => void;
+}) {
+  const isEdit = !!props.initial;
+  const [name, setName] = useState(props.initial?.name ?? "");
   const [busy, setBusy] = useState(false);
   const [error, setError] = useState<string | null>(null);
 
@@ -13,7 +18,11 @@ export default function AddMonitor(props: { onDone: () => void; onCancel: () => 
     setBusy(true);
     setError(null);
     try {
-      await api.saveMonitorPreset(trimmed);
+      if (isEdit) {
+        await api.updateMonitorPreset(props.initial!.id, trimmed);
+      } else {
+        await api.saveMonitorPreset(trimmed);
+      }
       props.onDone();
     } catch (e) {
       setError(String(e));
@@ -23,10 +32,11 @@ export default function AddMonitor(props: { onDone: () => void; onCancel: () => 
 
   return (
     <div className="dialog">
-      <h2>Add monitor preset</h2>
+      <h2>{isEdit ? "Edit monitor preset" : "Add monitor preset"}</h2>
       <p className="hint">
-        Arrange your displays the way you want, then name and save the current
-        arrangement.
+        {isEdit
+          ? "Rename this preset. The saved display arrangement is unchanged."
+          : "Arrange your displays the way you want, then name and save the current arrangement."}
       </p>
       <input
         autoFocus
@@ -45,7 +55,7 @@ export default function AddMonitor(props: { onDone: () => void; onCancel: () => 
           Cancel
         </button>
         <button disabled={busy || !name.trim()} onClick={save}>
-          Save current
+          {isEdit ? "Save" : "Save current"}
         </button>
       </div>
     </div>

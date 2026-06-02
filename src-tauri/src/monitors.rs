@@ -80,6 +80,20 @@ pub async fn apply_monitor_preset(app: AppHandle, id: String) -> Result<(), Stri
     Ok(())
 }
 
+/// Rename a monitor preset (the saved arrangement is unchanged).
+#[tauri::command]
+pub async fn update_monitor_preset(app: AppHandle, id: String, name: String) -> Result<(), String> {
+    let mut config = load_config(&app).map_err(|e| e.to_string())?;
+    let preset = config
+        .monitor_presets
+        .iter_mut()
+        .find(|p| p.id == id)
+        .ok_or_else(|| format!("monitor preset '{id}' not found"))?;
+    preset.name = name;
+    save_config(&app, &config).map_err(|e| e.to_string())?;
+    Ok(())
+}
+
 /// Return the ids of every preset whose layout matches the *current* monitor
 /// arrangement. Captures the live state to a temp config (read-only — it does
 /// not change any display) and compares it against each saved preset, so the

@@ -2,11 +2,16 @@ import { useEffect, useState } from "react";
 import * as api from "./api";
 import type { AudioDevice } from "./types";
 
-/** Form body for adding an audio preset, shown inside the modal. */
-export default function AddAudio(props: { onDone: () => void; onCancel: () => void }) {
+/** Form body for adding or editing an audio preset, shown inside the modal. */
+export default function AddAudio(props: {
+  initial?: { id: string; name: string; deviceId: string };
+  onDone: () => void;
+  onCancel: () => void;
+}) {
+  const isEdit = !!props.initial;
   const [devices, setDevices] = useState<AudioDevice[]>([]);
-  const [deviceId, setDeviceId] = useState("");
-  const [name, setName] = useState("");
+  const [deviceId, setDeviceId] = useState(props.initial?.deviceId ?? "");
+  const [name, setName] = useState(props.initial?.name ?? "");
   const [busy, setBusy] = useState(false);
   const [error, setError] = useState<string | null>(null);
 
@@ -15,8 +20,10 @@ export default function AddAudio(props: { onDone: () => void; onCancel: () => vo
       .listAudioDevices()
       .then((devs) => {
         setDevices(devs);
-        const def = devs.find((d) => d.isDefault) ?? devs[0];
-        if (def) setDeviceId(def.id);
+        setDeviceId((cur) => {
+          if (cur && devs.some((d) => d.id === cur)) return cur;
+          return (devs.find((d) => d.isDefault) ?? devs[0])?.id ?? "";
+        });
       })
       .catch((e) => setError(String(e)));
   }, []);
@@ -28,7 +35,11 @@ export default function AddAudio(props: { onDone: () => void; onCancel: () => vo
     setBusy(true);
     setError(null);
     try {
-      await api.saveAudioPreset(trimmed, dev.id, dev.name);
+      if (isEdit) {
+        await api.updateAudioPreset(props.initial!.id, trimmed, dev.id, dev.name);
+      } else {
+        await api.saveAudioPreset(trimmed, dev.id, dev.name);
+      }
       props.onDone();
     } catch (e) {
       setError(String(e));
@@ -38,7 +49,7 @@ export default function AddAudio(props: { onDone: () => void; onCancel: () => vo
 
   return (
     <div className="dialog">
-      <h2>Add audio preset</h2>
+      <h2>{isEdit ? "Edit audio preset" : "Add audio preset"}</h2>
       <label className="field">
         <span>Output device</span>
         <select
@@ -73,7 +84,7 @@ export default function AddAudio(props: { onDone: () => void; onCancel: () => vo
           Cancel
         </button>
         <button disabled={busy || !name.trim() || !deviceId} onClick={save}>
-          Save preset
+          {isEdit ? "Save" : "Save preset"}
         </button>
       </div>
     </div>

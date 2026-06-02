@@ -1,3 +1,4 @@
+// App icon embedded from src-tauri/icons at build time.
 mod audio;
 mod master;
 mod monitors;
@@ -12,6 +13,13 @@ use tauri_plugin_autostart::{ManagerExt, MacosLauncher};
 #[tauri::command]
 fn hide_window(window: WebviewWindow) {
     let _ = window.hide();
+}
+
+/// Open a URL in the user's default browser.
+#[tauri::command]
+fn open_external(app: tauri::AppHandle, url: String) -> Result<(), String> {
+    use tauri_plugin_opener::OpenerExt;
+    app.opener().open_url(url, None::<&str>).map_err(|e| e.to_string())
 }
 
 /// Enable or disable launching PepeTools when the user logs in.
@@ -59,20 +67,24 @@ pub fn run() {
         .invoke_handler(tauri::generate_handler![
             store::get_config,
             monitors::save_monitor_preset,
+            monitors::update_monitor_preset,
             monitors::apply_monitor_preset,
             monitors::active_monitor_presets,
             monitors::delete_monitor_preset,
             audio::list_audio_devices,
             audio::save_audio_preset,
+            audio::update_audio_preset,
             audio::apply_audio_preset,
             audio::delete_audio_preset,
             master::save_master_preset,
+            master::update_master_preset,
             master::apply_master_preset,
             master::reorder_master_presets,
             master::delete_master_preset,
             set_autostart,
             get_autostart,
             hide_window,
+            open_external,
         ])
         .run(tauri::generate_context!())
         .expect("error while running tauri application");

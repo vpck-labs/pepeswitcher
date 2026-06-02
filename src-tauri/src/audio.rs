@@ -118,6 +118,28 @@ pub async fn save_audio_preset(
     Ok(preset)
 }
 
+/// Update an audio preset's name and/or target device.
+#[tauri::command]
+pub async fn update_audio_preset(
+    app: AppHandle,
+    id: String,
+    name: String,
+    device_id: String,
+    device_name: String,
+) -> Result<(), String> {
+    let mut config = load_config(&app).map_err(|e| e.to_string())?;
+    let preset = config
+        .audio_presets
+        .iter_mut()
+        .find(|p| p.id == id)
+        .ok_or_else(|| format!("audio preset '{id}' not found"))?;
+    preset.name = name;
+    preset.device_id = device_id;
+    preset.device_name = device_name;
+    save_config(&app, &config).map_err(|e| e.to_string())?;
+    Ok(())
+}
+
 /// Make the preset's device the default output for all roles.
 #[tauri::command]
 pub async fn apply_audio_preset(app: AppHandle, id: String) -> Result<(), String> {

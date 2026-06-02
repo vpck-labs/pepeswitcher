@@ -1,8 +1,14 @@
 //! System tray icon and its menu.
 
+use tauri::image::Image;
 use tauri::menu::{Menu, MenuItem, PredefinedMenuItem};
 use tauri::tray::{MouseButton, MouseButtonState, TrayIconBuilder, TrayIconEvent};
 use tauri::{AppHandle, Manager, PhysicalPosition, WebviewWindow};
+
+/// Dedicated tray icon (white logo on transparent, 16x16), embedded at build
+/// time. Kept separate from the app/installer icon, which stays opaque so it's
+/// visible in Explorer.
+const TRAY_ICON_PNG: &[u8] = include_bytes!("../icons/tray.png");
 
 /// Show and focus the main window (it starts hidden / hides on close),
 /// docking it to the bottom-right of the screen first.
@@ -43,7 +49,7 @@ pub fn setup_tray(app: &AppHandle) -> tauri::Result<()> {
     let menu = Menu::with_items(app, &[&open, &sep, &quit])?;
 
     TrayIconBuilder::with_id("main-tray")
-        .icon(app.default_window_icon().unwrap().clone())
+        .icon(Image::from_bytes(TRAY_ICON_PNG).expect("valid tray icon PNG"))
         .tooltip("PepeSwitcher")
         .menu(&menu)
         .show_menu_on_left_click(false)

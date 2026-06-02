@@ -18,6 +18,20 @@ function PlusIcon() {
   );
 }
 
+function PencilIcon() {
+  return (
+    <svg width="13" height="13" viewBox="0 0 16 16" aria-hidden="true">
+      <path
+        d="M10.8 2.2l3 3L6 13l-3.2.6L3.4 10l7.4-7.8z"
+        stroke="currentColor"
+        strokeWidth="1.2"
+        fill="none"
+        strokeLinejoin="round"
+      />
+    </svg>
+  );
+}
+
 function App() {
   const [config, setConfig] = useState<AppConfig>(EMPTY);
   const [devices, setDevices] = useState<AudioDevice[]>([]);
@@ -26,6 +40,20 @@ function App() {
   const [status, setStatus] = useState<{ kind: "ok" | "err"; text: string } | null>(null);
   const [busy, setBusy] = useState(false);
   const [dialog, setDialog] = useState<null | "monitor" | "audio" | "master" | "about">(null);
+  const [editId, setEditId] = useState<string | null>(null);
+
+  const openAdd = (kind: "monitor" | "audio" | "master") => {
+    setEditId(null);
+    setDialog(kind);
+  };
+  const openEdit = (kind: "monitor" | "audio" | "master", id: string) => {
+    setEditId(id);
+    setDialog(kind);
+  };
+  const closeDialog = () => {
+    setDialog(null);
+    setEditId(null);
+  };
 
   const flash = (kind: "ok" | "err", text: string) => {
     setStatus({ kind, text });
@@ -62,7 +90,7 @@ function App() {
   }, [refresh]);
 
   const onDialogDone = () => {
-    setDialog(null);
+    closeDialog();
     refresh();
   };
 
@@ -147,11 +175,17 @@ function App() {
       .map((m) => m.id),
   );
 
-  const masterCombo = (m: AppConfig["masterPresets"][number]) => {
-    const mon = config.monitorPresets.find((p) => p.id === m.monitorPresetId)?.name;
-    const aud = config.audioPresets.find((p) => p.id === m.audioPresetId)?.name;
-    return [mon, aud].filter(Boolean).join(" + ") || "—";
-  };
+  const monName = (id?: string | null) =>
+    config.monitorPresets.find((p) => p.id === id)?.name ?? null;
+  const audName = (id?: string | null) =>
+    config.audioPresets.find((p) => p.id === id)?.name ?? null;
+  const masterCombo = (m: AppConfig["masterPresets"][number]) =>
+    [monName(m.monitorPresetId), audName(m.audioPresetId)].filter(Boolean).join(" + ") || "—";
+
+  // The preset currently targeted for editing (if any), per category.
+  const editMonitor = editId ? config.monitorPresets.find((p) => p.id === editId) : undefined;
+  const editAudio = editId ? config.audioPresets.find((p) => p.id === editId) : undefined;
+  const editMaster = editId ? config.masterPresets.find((m) => m.id === editId) : undefined;
 
   return (
     <main className="app">
@@ -188,7 +222,7 @@ function App() {
             </button>
             <button
               className="ghost icon"
-              onClick={() => setDialog("monitor")}
+              onClick={() => openAdd("monitor")}
               disabled={busy}
               title="Add monitor preset"
             >
@@ -203,6 +237,7 @@ function App() {
           activeIds={activeMonitorSet}
           busy={busy}
           onApply={(id) => run("Applied monitor preset", () => api.applyMonitorPreset(id))}
+          onEdit={(id) => openEdit("monitor", id)}
           onDelete={(id) => run("Deleted monitor preset", () => api.deleteMonitorPreset(id))}
         />
       </Section>
@@ -217,7 +252,7 @@ function App() {
             </button>
             <button
               className="ghost icon"
-              onClick={() => setDialog("audio")}
+              onClick={() => openAdd("audio")}
               disabled={busy}
               title="Add audio preset"
             >
@@ -236,6 +271,7 @@ function App() {
           activeIds={activeAudioIds}
           busy={busy}
           onApply={(id) => run("Switched audio output", () => api.applyAudioPreset(id))}
+          onEdit={(id) => openEdit("audio", id)}
           onDelete={(id) => run("Deleted audio preset", () => api.deleteAudioPreset(id))}
         />
       </Section>
@@ -246,7 +282,7 @@ function App() {
         actions={
           <button
             className="ghost icon"
-            onClick={() => setDialog("master")}
+            onClick={() => openAdd("master")}
             disabled={busy}
             title="Add master preset"
           >
@@ -265,6 +301,7 @@ function App() {
           activeIds={masterActiveIds}
           busy={busy}
           onApply={(id) => run("Applied master preset", () => api.applyMasterPreset(id))}
+          onEdit={(id) => openEdit("master", id)}
           onDelete={(id) => run("Deleted master preset", () => api.deleteMasterPreset(id))}
           onReorder={reorderMaster}
         />
@@ -272,19 +309,45 @@ function App() {
       </div>
 
       {dialog && (
-        <div className="modal-backdrop" onMouseDown={() => setDialog(null)}>
+        <div className="modal-backdrop" onMouseDown={closeDialog}>
           <div className="modal" onMouseDown={(e) => e.stopPropagation()}>
             {dialog === "about" ? (
-              <About onClose={() => setDialog(null)} />
+              <About onClose={closeDialog} />
             ) : dialog === "monitor" ? (
-              <AddMonitor onDone={onDialogDone} onCancel={() => setDialog(null)} />
+              <AddMonitor
+                initial={editMonitor ? { id: editMonitor.id, name: editMonitor.name } : undefined}
+                onDone={onDialogDone}
+                onCancel={closeDialog}
+              />
             ) : dialog === "audio" ? (
-              <AddAudio onDone={onDialogDone} onCancel={() => setDialog(null)} />
+              <AddAudio
+                initial={
+                  editAudio
+                    ? { id: editAudio.id, name: editAudio.name, deviceId: editAudio.deviceId }
+                    : undefined
+                }
+                onDone={onDialogDone}
+                onCancel={closeDialog}
+              />
             ) : (
               <AddMaster
-                current={currentSelection}
+                current={
+                  editMaster
+                    ? {
+                        monitorId: editMaster.monitorPresetId ?? null,
+                        monitorName: monName(editMaster.monitorPresetId),
+                        audioId: editMaster.audioPresetId ?? null,
+                        audioName: audName(editMaster.audioPresetId),
+                      }
+                    : currentSelection
+                }
+                initial={
+                  editMaster
+                    ? { id: editMaster.id, name: editMaster.name, hotkey: editMaster.hotkey ?? null }
+                    : undefined
+                }
                 onDone={onDialogDone}
-                onCancel={() => setDialog(null)}
+                onCancel={closeDialog}
               />
             )}
           </div>
@@ -346,6 +409,7 @@ function PresetList(props: {
   busy: boolean;
   activeIds: Set<string>;
   onApply: (id: string) => void;
+  onEdit?: (id: string) => void;
   onDelete: (id: string) => void;
   onReorder?: (orderedIds: string[]) => void;
 }) {
@@ -380,22 +444,51 @@ function PresetList(props: {
               dragId === it.id ? "dragging" : ""
             }`}
             draggable={!!onReorder}
-            onDragStart={() => setDragId(it.id)}
-            onDragOver={(e) => onReorder && e.preventDefault()}
-            onDrop={() => onDrop(it.id)}
+            onDragStart={(e) => {
+              setDragId(it.id);
+              e.dataTransfer.effectAllowed = "move";
+              e.dataTransfer.setData("text/plain", it.id);
+            }}
+            onDragOver={(e) => {
+              if (onReorder) {
+                e.preventDefault();
+                e.dataTransfer.dropEffect = "move";
+              }
+            }}
+            onDrop={(e) => {
+              if (onReorder) e.preventDefault();
+              onDrop(it.id);
+            }}
+            onDragEnd={() => setDragId(null)}
           >
             <span className="preset-name">
-              {it.primary}
+              <span className="preset-title-row">
+                <span className="preset-title">{it.primary}</span>
+                {active && (
+                  <span className="check" title="Active" aria-label="Active">
+                    ✓
+                  </span>
+                )}
+              </span>
               {it.secondary && <small>{it.secondary}</small>}
               {it.hotkey && <small className="kbd">{it.hotkey}</small>}
             </span>
             <span className="preset-actions">
-              {active && <span className="badge">Active</span>}
               <button disabled={props.busy} onClick={() => props.onApply(it.id)}>
                 Apply
               </button>
+              {props.onEdit && (
+                <button
+                  className="ghost icon"
+                  disabled={props.busy}
+                  onClick={() => props.onEdit!(it.id)}
+                  title="Edit preset"
+                >
+                  <PencilIcon />
+                </button>
+              )}
               <button
-                className="ghost danger"
+                className="ghost danger icon"
                 disabled={props.busy}
                 onClick={() => props.onDelete(it.id)}
                 title="Delete preset"
