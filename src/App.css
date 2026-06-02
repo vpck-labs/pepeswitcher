@@ -1,0 +1,277 @@
+:root {
+  color-scheme: dark;
+  font-family: "Segoe UI", system-ui, sans-serif;
+}
+
+* {
+  box-sizing: border-box;
+}
+
+body {
+  margin: 0;
+  background: #1b1d22;
+  color: #e7e9ee;
+}
+
+.app {
+  padding: 16px;
+  display: flex;
+  flex-direction: column;
+  gap: 14px;
+}
+
+.app-head {
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+}
+
+.app-head h1 {
+  font-size: 20px;
+  margin: 0;
+  letter-spacing: 0.5px;
+}
+
+.head-right {
+  display: flex;
+  align-items: center;
+  gap: 10px;
+}
+
+.autostart {
+  display: flex;
+  align-items: center;
+  gap: 6px;
+  font-size: 13px;
+  color: #aab1c0;
+  user-select: none;
+}
+
+.card-actions {
+  display: flex;
+  align-items: center;
+  gap: 6px;
+}
+
+.card {
+  background: #23262e;
+  border: 1px solid #2f333d;
+  border-radius: 10px;
+  padding: 14px;
+}
+
+.card-head {
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+  margin-bottom: 12px;
+}
+
+.card h2 {
+  font-size: 14px;
+  text-transform: uppercase;
+  letter-spacing: 0.6px;
+  color: #9aa3b2;
+  margin: 0;
+}
+
+button.icon {
+  padding: 4px 8px;
+  font-size: 15px;
+  line-height: 1;
+}
+
+.add-row {
+  display: flex;
+  gap: 8px;
+  margin-bottom: 10px;
+}
+
+.add-row input,
+.add-row select {
+  flex: 1;
+  min-width: 0;
+  padding: 8px 10px;
+  border-radius: 7px;
+  border: 1px solid #3a3f4b;
+  background: #14161a;
+  color: #e7e9ee;
+  font-size: 13px;
+}
+
+button {
+  padding: 8px 12px;
+  border-radius: 7px;
+  border: 1px solid transparent;
+  background: #3b82f6;
+  color: white;
+  font-size: 13px;
+  font-weight: 600;
+  cursor: pointer;
+  white-space: nowrap;
+}
+
+button:hover:not(:disabled) {
+  background: #2f6fe0;
+}
+
+button:disabled {
+  opacity: 0.45;
+  cursor: default;
+}
+
+button.ghost {
+  background: transparent;
+  border-color: #3a3f4b;
+  color: #9aa3b2;
+  font-weight: 400;
+  padding: 8px 10px;
+}
+
+button.ghost:hover:not(:disabled) {
+  border-color: #e25555;
+  color: #e25555;
+  background: transparent;
+}
+
+.presets {
+  list-style: none;
+  margin: 0;
+  padding: 0;
+  display: flex;
+  flex-direction: column;
+  gap: 6px;
+}
+
+.presets li {
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+  gap: 10px;
+  padding: 8px 10px;
+  border-radius: 7px;
+  background: #181a1f;
+  border: 1px solid #2a2e37;
+}
+
+.presets li.active {
+  border-color: #245034;
+  background: #14241a;
+}
+
+.badge {
+  align-self: center;
+  font-size: 11px;
+  font-weight: 600;
+  letter-spacing: 0.4px;
+  color: #7ee0a0;
+  background: #18351f;
+  border: 1px solid #245034;
+  border-radius: 999px;
+  padding: 2px 9px;
+}
+
+.preset-name {
+  display: flex;
+  flex-direction: column;
+  font-size: 14px;
+}
+
+.preset-name small {
+  color: #7e8696;
+  font-size: 12px;
+}
+
+.preset-actions {
+  display: flex;
+  gap: 6px;
+}
+
+.empty {
+  color: #7e8696;
+  font-size: 13px;
+  margin: 4px 0 0;
+}
+
+.status {
+  padding: 8px 12px;
+  border-radius: 7px;
+  font-size: 13px;
+}
+
+.status.ok {
+  background: #18351f;
+  color: #7ee0a0;
+  border: 1px solid #245034;
+}
+
+.status.err {
+  background: #3a1c1c;
+  color: #f0a0a0;
+  border: 1px solid #5a2a2a;
+}
+
+/* ---- Add-preset modal ---- */
+
+.modal-backdrop {
+  position: fixed;
+  inset: 0;
+  background: rgba(0, 0, 0, 0.55);
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  z-index: 100;
+}
+
+.modal {
+  width: 320px;
+  max-width: calc(100vw - 32px);
+  background: #23262e;
+  border: 1px solid #3a3f4b;
+  border-radius: 12px;
+  box-shadow: 0 12px 40px rgba(0, 0, 0, 0.5);
+}
+
+.dialog {
+  padding: 16px;
+  display: flex;
+  flex-direction: column;
+  gap: 12px;
+}
+
+.dialog h2 {
+  margin: 0;
+  font-size: 16px;
+}
+
+.dialog .hint {
+  margin: 0;
+  font-size: 12px;
+  color: #7e8696;
+  line-height: 1.4;
+}
+
+.field {
+  display: flex;
+  flex-direction: column;
+  gap: 5px;
+  font-size: 12px;
+  color: #9aa3b2;
+}
+
+.dialog input,
+.dialog select {
+  padding: 8px 10px;
+  border-radius: 7px;
+  border: 1px solid #3a3f4b;
+  background: #14161a;
+  color: #e7e9ee;
+  font-size: 13px;
+}
+
+.dialog-actions {
+  display: flex;
+  justify-content: flex-end;
+  gap: 8px;
+  margin-top: auto;
+}
